@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "postinstall": "prisma generate",
+    "dev": "tsc-watch --onSuccess \"node dist/server.js\"",
     "build": "tsc",
     "start": "node dist/server.js",
     "db:migrate": "prisma migrate dev",
@@ -26,7 +27,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.3",
     "prisma": "^6.19.3",
-    "tsx": "^4.23.15",
+    "tsc-watch": "^7.2.1",
     "typescript": "^5.9.3"
   }
 }
