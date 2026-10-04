@@ -1,5 +1,6 @@
 import { NavLink, Route, Routes } from "react-router";
 import { NewCandidatePage } from "./pages/NewCandidatePage";
+import { CandidateListPage } from "./pages/CandidateListPage";
 
 export default function App() {
   return (
@@ -16,7 +17,7 @@ export default function App() {
 
       <main>
         <Routes>
-          <Route path="/" element={<p>Listagem</p>} />
+          <Route path="/" element={<CandidateListPage />} />
           <Route path="/novo" element={<NewCandidatePage />} />
           <Route path="/candidatos/:id" element={<p>Detalhes</p>} />
         </Routes>
