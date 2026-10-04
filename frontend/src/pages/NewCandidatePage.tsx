@@ -3,8 +3,13 @@ import { useNavigate } from "react-router";
 import { api, ApiError } from "../api/client";
 import { Alert } from "../components/Alert";
 import { CandidateForm } from "../components/CandidateForm";
+import { PdfImport } from "../components/PdfImport";
 import { validateCandidate } from "../validation/candidate";
-import type { CandidateFormData, FieldErrors } from "../types/candidate";
+import type {
+  CandidateFormData,
+  ExtractedCandidate,
+  FieldErrors,
+} from "../types/candidate";
 
 const emptyForm: CandidateFormData = {
   fullName: "",
@@ -24,6 +29,17 @@ export function NewCandidatePage() {
   function handleChange(field: keyof CandidateFormData, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
+  }
+
+  function handleExtracted(data: ExtractedCandidate) {
+    setValues((current) => ({
+      ...current,
+      fullName: data.fullName ?? current.fullName,
+      email: data.email ?? current.email,
+      phone: data.phone ?? current.phone,
+    }));
+    setErrors({});
+    setSubmitError(null);
   }
 
   async function handleSubmit() {
@@ -58,6 +74,7 @@ export function NewCandidatePage() {
   return (
     <section>
       <h2>Novo cadastro</h2>
+      <PdfImport onExtracted={handleExtracted} />
       {submitError && <Alert type="error">{submitError}</Alert>}
       <CandidateForm
         values={values}

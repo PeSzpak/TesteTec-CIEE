@@ -170,3 +170,28 @@ h2 {
   background: #eef2fd;
   color: var(--primary);
 }
+
+.import {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.import-label {
+  font-weight: 600;
+}
+
+.import-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.import input[type="file"] {
+  font: inherit;
+}
+
+.import .alert {
+  margin: 4px 0 0;
+}
