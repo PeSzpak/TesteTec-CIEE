@@ -271,3 +271,66 @@ a.button {
   display: inline-block;
   text-decoration: none;
 }
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.details-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.details-header h2 {
+  margin: 0;
+}
+
+.details-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+
+.details-list dt {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.details-list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.details-list a {
+  color: var(--primary);
+}
+
+.details-summary h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.details-summary p {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
