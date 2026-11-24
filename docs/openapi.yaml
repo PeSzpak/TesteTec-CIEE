@@ -1,0 +1,218 @@
+openapi: 3.0.3
+info:
+  title: Cadastro de currículos API
+  version: 1.0.0
+  description: |
+    API do desafio de cadastro de candidatos (Express 5 + Prisma + SQL Server).
+    Cadastro manual e leitura de dados de um currículo em PDF. Sem autenticação.
+  license:
+    name: ISC
+    url: https://opensource.org/license/isc-license-txt
+servers:
+  - url: http://localhost:3333
+    description: Backend local (npm run dev)
+tags:
+  - name: Candidatos
+  - name: Currículos
+  - name: Health
+security: []
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Verifica se a API está no ar
+      operationId: health
+      responses:
+        "200":
+          description: API no ar
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+  /api/candidates:
+    post:
+      tags: [Candidatos]
+      summary: Cadastra um candidato
+      operationId: createCandidate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CandidateInput" }
+            example:
+              fullName: Marina Albuquerque Teles
+              email: marina.teles@exemplo.com
+              phone: (41) 91234-5678
+              area: Desenvolvimento Front-end
+              summary: Estudante de ADS com projetos em React e TypeScript.
+      responses:
+        "201":
+          description: Candidato criado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Candidate" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "409":
+          description: E-mail já cadastrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { message: Já existe um candidato com este e-mail }
+        "500": { $ref: "#/components/responses/InternalError" }
+    get:
+      tags: [Candidatos]
+      summary: Lista os candidatos, do mais recente para o mais antigo
+      operationId: listCandidates
+      responses:
+        "200":
+          description: Lista (sem telefone e resumo)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/CandidateListItem" }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /api/candidates/{id}:
+    get:
+      tags: [Candidatos]
+      summary: Detalhes de um candidato
+      operationId: getCandidate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        "200":
+          description: Candidato
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Candidate" }
+        "400":
+          description: ID não é um inteiro positivo
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { message: ID inválido }
+        "404":
+          description: Candidato não existe
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { message: Candidato não encontrado }
+        "500": { $ref: "#/components/responses/InternalError" }
+  /api/resumes/parse:
+    post:
+      tags: [Currículos]
+      summary: Extrai nome, e-mail e telefone de um currículo em PDF
+      description: |
+        Lê o PDF em memória e devolve os campos que encontrou (os que não encontrou vêm como `null`).
+        Não salva nada. Limite de 5 MB e um único arquivo no campo `file`.
+      operationId: parseResume
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDF (mimetype application/pdf)
+      responses:
+        "200":
+          description: Dados encontrados
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExtractedCandidate" }
+              example:
+                fullName: Isabelle da Cruz
+                email: isabelle.cruz@email.com
+                phone: (41) 99876-5432
+        "400":
+          description: Sem arquivo, mimetype diferente de PDF, arquivo sem assinatura `%PDF-` ou mais de um arquivo
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { message: Apenas arquivos PDF são aceitos }
+        "413":
+          description: Arquivo acima de 5 MB
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { message: O arquivo deve ter no máximo 5 MB }
+        "422":
+          description: PDF ilegível ou sem texto selecionável (escaneado)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { message: Não foi possível ler o PDF. Preencha os dados manualmente }
+components:
+  schemas:
+    CandidateInput:
+      type: object
+      required: [fullName, email]
+      properties:
+        fullName: { type: string, minLength: 1, maxLength: 200, description: Espaços nas pontas são removidos }
+        email: { type: string, format: email, description: Salvo em minúsculas; precisa ser único }
+        phone: { type: string, maxLength: 30, pattern: '^[\d\s()+\-]+$', description: Vazio vira null }
+        area: { type: string, maxLength: 150, description: Vazio vira null }
+        summary: { type: string, maxLength: 4000, description: Vazio vira null }
+    Candidate:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        fullName: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string, nullable: true }
+        area: { type: string, nullable: true }
+        summary: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+    CandidateListItem:
+      type: object
+      properties:
+        id: { type: integer }
+        fullName: { type: string }
+        email: { type: string, format: email }
+        area: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+    ExtractedCandidate:
+      type: object
+      required: [fullName, email, phone]
+      properties:
+        fullName: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+    ValidationErrorBody:
+      type: object
+      properties:
+        message: { type: string, example: Dados inválidos }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+          example:
+            fullName: [Nome completo é obrigatório]
+            email: [Formato de e-mail inválido]
+  responses:
+    ValidationError:
+      description: Corpo inválido (validação Zod)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ValidationErrorBody" }
+    InternalError:
+      description: Erro inesperado
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example: { message: Erro interno do servidor }
