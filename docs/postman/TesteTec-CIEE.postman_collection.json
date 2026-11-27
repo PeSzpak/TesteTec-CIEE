@@ -1,0 +1,81 @@
+{
+  "info": {
+    "name": "Cadastro de currículos (TesteTec-CIEE)",
+    "description": "Endpoints do backend Express. Suba o SQL Server e rode `npm run dev` em backend/. Sem autenticação; a variável token fica vazia.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3333" },
+    { "key": "token", "value": "" },
+    { "key": "candidateId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": { "method": "GET", "url": "{{baseUrl}}/health" }
+    },
+    {
+      "name": "Candidatos",
+      "item": [
+        {
+          "name": "Cadastrar candidato",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set('candidateId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/candidates",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Marina Albuquerque Teles\",\n  \"email\": \"marina.teles@exemplo.com\",\n  \"phone\": \"(41) 91234-5678\",\n  \"area\": \"Desenvolvimento Front-end\",\n  \"summary\": \"Estudante de ADS com projetos em React e TypeScript.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cadastrar candidato inválido (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/candidates",
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"\",\n  \"email\": \"nao-e-email\"\n}" }
+          }
+        },
+        {
+          "name": "Listar candidatos",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/candidates" }
+        },
+        {
+          "name": "Detalhar candidato",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/candidates/{{candidateId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Currículos",
+      "item": [
+        {
+          "name": "Ler currículo em PDF",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/resumes/parse",
+            "description": "Selecione um PDF no campo file (por exemplo docs/curriculo-ficticio.pdf). Máximo 5 MB.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": [] }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
